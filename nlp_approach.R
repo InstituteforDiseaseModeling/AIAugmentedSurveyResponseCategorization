@@ -148,7 +148,7 @@ labelcluster_gpt <-
 
 
 # set llm model to use
-llm_model <- 'o1-mini'
+llm_model <- 'gpt-4o'
 
 # loop through all clusters and label them using the function
 preload_catassign <- FALSE # re-run or preload?
@@ -168,7 +168,7 @@ if(preload_catassign == FALSE){
           as.character(labelcluster_gpt(clustervar=clusts[method==meth&nclusts==nclust]$cluster,
                                         cl=clnum,
                                         llm_mod=llm_model,
-                                        TEMP=1))
+                                        TEMP=0))
         cat_assiged <- rbind(cat_assiged,tmp)
       }
     }
