@@ -194,7 +194,7 @@ if(preload_catassign == FALSE){
 catcompare <- merge(clusts, reasons_full[,c('random_order','roy_categorized','roy_notableresponse')], 
                     by.x='rowid', by.y='random_order')
 catcompare <- merge(catcompare, cat_assiged, by = c('method','nclusts','cluster'))
-write.csv(catcompare, 'NLP_Validation_RB13SEPT2024.csv')
+write.csv(catcompare, 'NLP_Validation_RB13SEPT2024o1mini.csv')
 
 
 # get accuracy
