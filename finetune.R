@@ -230,5 +230,32 @@ if (status == "succeeded") {
 
 
 
+### ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ 
+### ------ RUN VALIDATION ON THE FT model 
+### For the last 200 test pairs, get the results using the FT model
 
 
+# this is the model that was fine tuned on 18-SEPT-2024:
+ft_modname <- 'ft:gpt-4o-2024-08-06:gates-foundation::A8wDZ0kI'
+
+# pull test data
+test_responses <- reasons_full[random_order%in%801:999]$reason
+
+# do completion
+for(i in 801:999){
+  message(i)
+  reasons_full[random_order==i, ai_categorized := 
+                create_chat_completion(
+                  model = ft_modname, 
+                  temperature = 0, 
+                  messages = list(
+                    list('role' = 'system','content' = system_prompt),
+                    list('role' = 'user',  'content' = test_responses[i-800])
+                  ))$choices$message.content]
+}
+
+# write output
+
+# get validation
+write.csv(reasons_full[random_order%in%801:999][, .(ai_categorized, roy_categorized)],'ft_validation_results.csv')
+mean(reasons_full[random_order%in%801:999]$ai_categorized == reasons_full[random_order%in%801:999]$roy_categorized)
