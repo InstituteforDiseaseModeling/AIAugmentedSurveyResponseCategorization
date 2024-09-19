@@ -33,7 +33,7 @@ response_options[, index := 1:.N]
 ### ------ EMBEDDINGS
 ## extract or pre-load the embeddings for each response (reason given)
 
-preloaded_embeddings <- TRUE
+preloaded_embeddings <- FALSE
 if(preloaded_embeddings==FALSE){
   
   # extract the embedding from openai. using the small model for now
@@ -55,9 +55,9 @@ if(preloaded_embeddings==FALSE){
   }
   em <- embasmatrix(as.data.table(e$data[3]))
   
-  saveRDS(em, file.path(datdir,'embeddingsSmall_validationset_27APR2024.rds'))
+  saveRDS(em, file.path(datdir,'embeddingsSmall_validationset_19SEPT2024.rds'))
 } else {
-  em <- readRDS(file.path(datdir,'embeddingsSmall_validationset_27APR2024.rds'))
+  em <- readRDS(file.path(datdir,'embeddingsSmall_validationset_19SEPT2024.rds'))
 }
 
 # em is a list of 1536 columns, each a numeric vector of length 1000, cbind them
@@ -74,7 +74,7 @@ em <- as.data.table(do.call(cbind,em))
 # set method and number of clusters
 set.seed(12345)
 cl_method <- 'gmm' # can be 'kmeans', 'hier', 'gmm'
-nclusts   <- 200   # can be any number
+nclusts   <-  200   # can be any number
 
 # Set up functions for various cluster approaches
 kmeans_clust <- function(dat, k){  kmeans(dat, centers=k, iter.max=1000)$cluster }
@@ -115,7 +115,7 @@ labelcluster_gpt <-
     I will provide you a list of survey responses and a comprehensive list of thematic labels. 
     You can only choose from one of these. 
     
-    You will only return the number associated with the chosen label, nothing else.'
+    You will only return the number associated with the chosen label, nothing else. DO NOT RETURN ANY OTHER INFORMATION.'
     
     prompt <- 'Responses have been pre-screened and should all fit under one cohesive theme.  
     Here are the example responses, separated by semicolons:
@@ -148,7 +148,7 @@ labelcluster_gpt <-
 
 
 # set llm model to use
-llm_model <- 'gpt-4o'
+llm_model <- "gpt-4o-2024-08-06"
 
 # loop through all clusters and label them using the function
 preload_catassign <- FALSE # re-run or preload?
@@ -164,7 +164,7 @@ if(preload_catassign == FALSE){
         message(paste0('.... .... CLUSTER NUMBER:', clnum))
         set.seed(12345)
         tmp[, cluster:=clnum]
-        tmp$category_ai <-  
+        tmp$category_ai_raw <-  
           as.character(labelcluster_gpt(clustervar=clusts[method==meth&nclusts==nclust]$cluster,
                                         cl=clnum,
                                         llm_mod=llm_model,
@@ -174,16 +174,15 @@ if(preload_catassign == FALSE){
     }
   }
   # clean possible brackets that sometimes appear in outputs
-  cat_assiged[,category_ai:=as.numeric(gsub('\\[|\\]','',category_ai))]
+  cat_assiged[,category_ai:=as.numeric(gsub('\\[|\\]','',category_ai_raw))]
   cat_assiged$llm <- llm_model
-  saveRDS(cat_assiged, file.path(datdir,paste0('tmp/cat_assiged_13SEPT2024',llm_model,'.rds')))
+  saveRDS(cat_assiged, file.path(datdir,paste0('tmp/cat_assiged_','19SEPT2024','_',llm_model,'.rds')))
 } else {
-  cat_assiged <- readRDS(file.path(datdir,paste0('tmp/cat_assiged_13SEPT2024',llm_model,'.rds')))
+  cat_assiged <- readRDS(file.path(datdir,paste0('tmp/cat_assiged_','19SEPT2024','_',llm_model,'.rds')))
 }
 
-
-
-
+# HOTFIX BAD OUTPUT
+cat_assiged[is.na(category_ai), category_ai := as.numeric(gsub('\\[|\\]','',substr(category_ai_raw,1,regexpr(']',category_ai_raw))))]
 
 
 ### ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ 
@@ -194,13 +193,11 @@ if(preload_catassign == FALSE){
 catcompare <- merge(clusts, reasons_full[,c('random_order','roy_categorized','roy_notableresponse')], 
                     by.x='rowid', by.y='random_order')
 catcompare <- merge(catcompare, cat_assiged, by = c('method','nclusts','cluster'))
-write.csv(catcompare, 'NLP_Validation_RB13SEPT2024o1mini.csv')
+write.csv(catcompare, './inputs/NLP_Validation_19SEPT2024_gpt4o.csv')
 
 
 # get accuracy
 mean(catcompare$roy_categorized == catcompare$category_ai)
 mean(catcompare[rowid>800]$roy_categorized == catcompare[rowid>800]$category_ai)
-
-
 
 
