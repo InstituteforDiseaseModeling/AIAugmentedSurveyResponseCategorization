@@ -262,16 +262,15 @@ reas_cited <- merge(reas_cited, response_options[,.(index,reason_category,EGH.do
 reas_cited[,freason_category := factor(reason_category, 
                                        levels = rev(response_options[order(index)]$reason_category))]
 
-
+png("./figs/reasons_zd_BOTH.png", width=10, height=6, units='in', res=300)
 ggplot(reas_cited[!is.na(freason_category)& vxstatus=='Zero-Dose']) +
-  geom_bar(aes(y = freason_category, fill = EGH.domain)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.text.y = element_text(size=12)) +  
-  labs(title = "Reasons for Non-Vaccination (ZD ECV2021-23)",
+  geom_bar(aes(y = freason_category, fill = EGH.domain)) +  
+  labs(title = "Reasons for Non-Vaccination (Zero-Dose, ECV2021-23)",
        x = "", y = "", fill = 'EGH Domain') +
   facet_wrap(.~OTHER, scales = 'free_x')+
+  theme(axis.text = element_text(size=30, lineheight = 0.2)) +  
   scale_fill_manual(values = IARCOLORS)
-
+dev.off()
 
 # replicate plot sowing other as most cat
 x<- copy(reas_cited)[vxstatus=='Zero-Dose'] #&survey=='ecv2021'&age>=12]
@@ -288,7 +287,7 @@ png("./figs/reasons_zd_all.png", width=10, height=6, units='in', res=300)
 ggplot(x[!is.na(freason_category)]) +
   geom_bar(aes(y = freason_category, x=pct*100, fill = EGH.domain),
            stat='identity',position='stack') +
-  #theme(axis.text = element_text(size=40)) +  
+  theme(axis.text = element_text(size=35, lineheight = 0.2)) +  
   labs(title = "Cited Reasons for Non-Vaccination (ZD ECV2021-23)",
        x = "Percent of Responses", y = "", fill = 'EGH Domain') +
   scale_fill_manual(values = IARCOLORS)
@@ -326,7 +325,7 @@ dev.off()
 
 # how many are in new categories
 mean(all_d$ai_categorized>22,na.rm=T) # 89.5%
-mean(all_d[vxstatus=='Zero-Dose']$ai_categorized>22 ,na.rm=T) # 82%
+mean(all_d[vxstatus=='Zero-Dose' & survey!='ecv2020']$ai_categorized>22 ,na.rm=T) # 82%
 
 
 
@@ -412,7 +411,8 @@ maphz <- function(var        = '',
                         na.value = naval) +
     theme(axis.ticks = element_blank(),
           axis.line  = element_blank(),
-          axis.text  = element_blank()) +
+          axis.text  = element_blank(),
+          text       = element_text(size=35)) +
     ggtitle(label) +
     xlab('') + ylab('')
   

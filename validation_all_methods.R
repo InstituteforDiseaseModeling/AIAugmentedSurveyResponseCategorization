@@ -223,4 +223,60 @@ for(m in acc$method)  acc[method == m, accuracy := mean(val_dat[[m]] == val_dat$
 
 
 
+### ------ 
+### ------ SAVE DISCORDANT RESULTS IN A FILE SO I CAN REVIEW FOR ACC CEILING CALCULATION
+
+# bring together reasons and results, include translations
+val_dat <- fread('validation_results_2024-09-19.csv')
+val_dat_long <- cbind(reasons_full[random_order%in%testdataidx,.(random_order,translation)], val_dat)
+
+# make it long
+val_dat_long <- melt(val_dat_long[,-c('V1')], id.vars = c('random_order','translation','roy_categorized'), 
+                variable.name = 'method', value.name = 'ai_categorized')
+
+# keep only discordancies
+discord <- discordO[roy_categorized != ai_categorized]
+
+# unique combos only to reduce work load
+discord$method <- discord$random_order <- NULL
+discord <- unique(discord)
+nrow(discord)
+
+# merge in category labels for the roy_ and ai_ categorized variables
+response_options <- data.table(readxl::read_excel("response options.xlsx"))[,.(reason_category)]
+response_options[, index := 1:.N]
+discord <- merge(discord, response_options, by.x='roy_categorized', by.y='index', all.x=T)
+setnames(discord, 'reason_category', 'roy_category')
+discord <- merge(discord, response_options, by.x='ai_categorized', by.y='index', all.x=T)
+setnames(discord, 'reason_category', 'ai_category')
+
+# make and interactive ask for each discordancy to accept or reject the AI's categorization
+run_accept_interactive <- FALSE
+if(run_accept_interactive == TRUE){
+  accept <- sapply(1:nrow(discord), function(i){
+    message(paste0(i, ' of ', nrow(discord)))
+    message(discord$translation[i])
+    message(paste0('AI: ',discord$ai_category[i]))
+    message(paste0('    <ROY: ',discord$roy_category[i],'>'))
+    message('Accept? (1=yes, 0=no) (hold ENTER to end)')
+    return(readline())
+  })
+  
+  discord$accept <- as.numeric(accept)
+  
+  # save the discordant results with my decisions dated today
+  write.csv(discord, paste0('discordant_results_RBaccept_',today(),'.csv'))
+} else {
+  discord <- fread('discordant_results_RBaccept_2024-09-25.csv')
+}
+
+
+## apply the accept criteria to get new accuracy ceilings for each method. 
+new_val <- merge(val_dat_long, discord[,.(translation,roy_categorized,ai_categorized,accept)], by=c('translation','roy_categorized','ai_categorized'), all.x=T)
+new_val[ai_categorized==roy_categorized, accept := 1]
+
+new_val[method!='zs_o1mini_categorized',
+        .(precice_accuracy = mean(ai_categorized == roy_categorized),
+           accuracy_ceiling = mean(accept == 1)),
+        by=method][order(precice_accuracy)]
 
