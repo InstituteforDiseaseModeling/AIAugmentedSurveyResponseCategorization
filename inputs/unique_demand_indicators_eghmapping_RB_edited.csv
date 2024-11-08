@@ -1,0 +1,44 @@
+Correlated.Standardized.Reason,Subcategory,Category,Demand.framework.section,Demand.framework.subsection,Demand.framework.label,EGH.domain,EGH.subdomain,EGH.sub.subdomain,Healthsystem.addressable
+Lack of information (generic),Access to Information,Aware,1.1 Awareness and knowledge,Health information,Lack of information,Intent to vaccinate,Attitudes,Awareness,Addressable
+Unaware of (need for) vaccination,Basic Awareness,Aware,1.1 Awareness and knowledge,Practical knowledge,Unaware of (need for) vaccination,Intent to vaccinate,Attitudes,Awareness,Addressable
+Unaware of need to return for subsequent dose,Practical Knowledge,Aware,1.1 Awareness and knowledge,Practical knowledge,"Unaware of Vx logistics (# of doses, location, time)",Intent to vaccinate,Attitudes,Awareness,Addressable
+Place and/or time of immunization unknown,Practical Knowledge,Aware,1.1 Awareness and knowledge,Practical knowledge,"Unaware of Vx logistics (# of doses, location, time)",Intent to vaccinate,Attitudes,Awareness,Addressable
+Unaware of schedule / need for specific vaccine,Practical Knowledge,Aware,1.1 Awareness and knowledge,Practical knowledge,"Unaware of Vx logistics (# of doses, location, time)",Intent to vaccinate,Attitudes,Awareness,Addressable
+Forgot to go,Complacency/Delay,Seeking,1.1 Awareness and knowledge,Practical knowledge,Forgot to go,Intent to vaccinate,Attitudes,Awareness,Addressable
+Migration,Child/Caregiver Unavailable,Seeking,1.2 Service experience,Accessibility,,Community access,Structural barriers,Structural barriers,Addressable
+Place of immunization too far,Convenience,Seeking,1.2 Service experience,Accessibility,"Convenience (schedule, wait time, distance, security concerns)",Community access,Structural barriers,Structural barriers,Addressable
+Card not available,HCW Effectiveness/MOV,Succeeding,1.2 Service experience,Accessibility,,Facility readiness,Supply,Supply,Addressable
+Long waiting time,Convenience,Seeking,1.2 Service experience,Convenience,"Convenience (schedule, wait time, distance, security concerns)",Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+"Family problem, including illness",Child/Caregiver Unavailable,Seeking,1.2 Service experience,Convenience,"Convenience (schedule, wait time, distance, security concerns)",Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Inconvenient timing,Convenience,Seeking,1.2 Service experience,Convenience,"Convenience (schedule, wait time, distance, security concerns)",Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Missed opportunity (generic),HCW Effectiveness/MOV,Succeeding,1.2 Service experience,Convenience,Missed opportunity (generic),Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Postponed until another time,Complacency/Delay,Seeking,1.2 Service experience,Convenience,"Convenience (schedule, wait time, distance, security concerns)",Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Child ill - brought but not vaccinated,Contraindications,Succeeding,Contraindication,Contraindication,,Contraindication,Contraindication,Contraindication,Contraindication
+Child ill - not brought,Contraindications,Seeking,Contraindication,Contraindication,,Contraindication,Contraindication,Contraindication,Contraindication
+Too busy / competing priorities,Complacency/Delay,Seeking,1.2 Service experience,Convenience,Too busy/competing priorities,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Child away / not available,Child/Caregiver Unavailable,Seeking,1.2 Service experience,Convenience,,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Child unavailable for home visit,HCW Effectiveness/MOV,Succeeding,1.2 Service experience,Availability,,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Vaccine not available,Service Availability,Succeeding,1.2 Service experience,Availability,Vx or vaccinator not available,Facility readiness,Supply,Supply,Addressable
+Not enough children to open a vial,HCW Effectiveness/MOV,Succeeding,1.2 Service experience,Availability,,Facility readiness,Supply,Supply,Addressable
+Vaccinator not available,Service Availability,Succeeding,1.2 Service experience,Availability,Vx or vaccinator not available,Facility readiness,Workforce,Workforce,Addressable
+Vaccinator too busy,Service Availability,Succeeding,1.2 Service experience,Availability,,Facility readiness,Workforce,Workforce,Addressable
+No female vaccinator,Agency/Self-efficacy,Accepting,1.2 Service experience,How I was treated,No female vaccinator,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Negative past experience,Negative Past Experience,Accepting,1.2 Service experience,How I was treated,Negative past experience,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+[False] contraindications (generic),Contraindications,Seeking,2.1 Trust and perceptions,Perceived effectiveness and safety,,Intent to vaccinate,Attitudes,Awareness,Addressable
+Vaccinators unfriendly / poorly trained / not trusted,Trust,Accepting,2.1 Trust and perceptions,Trust in public health system and providers,Vaccinators unfriendly/poorly trained/not trusted,Community access,Accommodation/acceptability,Accommodation/acceptability,Addressable
+Fears about side effects / AEFI / safety,Confidence/Acceptance,Accepting,2.1 Trust and perceptions,Perceived effectiveness and safety,,Intent to vaccinate,Attitudes,Attitudes,Not addressable
+Fear of needles / injection / pain,Confidence/Acceptance,Accepting,2.1 Trust and perceptions,Perceived effectiveness and safety,Fear of needles/injection/side effects/safety,Intent to vaccinate,Attitudes,Attitudes,Not addressable
+Rumors or misinformation,Norms/Social Context,Accepting,2.1 Trust and perceptions,Trust in public health system and providers,Rumors or misinformation,Intent to vaccinate,Attitudes,Attitudes,Not addressable
+Vaccination not seen as important or necessary,Complacency,Accepting,"2.2 Values, beliefs, norms",Values and belief systems,Vaccination not seen as important or necessary,Intent to vaccinate,Attitudes,Attitudes,Not addressable
+Caregiver does not believe in vaccination,Confidence/Acceptance,Accepting,"2.2 Values, beliefs, norms",Values and belief systems,Caregiver does not believe in vaccination,Intent to vaccinate,Attitudes,Attitudes,Not addressable
+Security concerns,Convenience,Seeking,1.2 Service experience,Accessibility,"Convenience (schedule, wait time, distance, security concerns)",Intent to vaccinate,Perceived control,Perceived control,Not addressable
+Cost,Cost,Seeking,1.2 Service experience,Affordability,Cost,Intent to vaccinate,Perceived control,Perceived control,Not addressable
+Obstacles (generic),Convenience,Seeking,1.2 Service experience,Convenience,Too busy/competing priorities,Community access,Accommodation/acceptability,Accommodation/acceptability,Not addressable
+Caregiver working,Convenience,Seeking,1.2 Service experience,Convenience,"Convenience (schedule, wait time, distance, security concerns)",Intent to vaccinate,Perceived control,Perceived control,Not addressable
+Family member (not mother) did not allow,Agency/Self-efficacy,Accepting,2.3 Empowerment,Control and agency to seek care,Family member (not mother) did not allow,Intent to vaccinate,Perceived control,Perceived control,Not addressable
+No responsible person,Child/Caregiver Unavailable,Seeking,2.3 Empowerment,Control and agency to seek care,No responsible person,Intent to vaccinate,Perceived control,Perceived control,Not addressable
+Cultural/religious beliefs against vaccination,Norms/Social Context,Accepting,"2.2 Values, beliefs, norms","Cultural, religious, social norms",Cultural/religious beliefs against vaccination,Intent to vaccinate,Perceived norms,Perceived norms,Not addressable
+Other (not specified),NA,NA,Other,Other,,Other,Other,Other,
+NA,NA,NA,Other,Other,,Other,Other,Other,
+Previously vaccinated,NA,NA,Other,Other,,Other,Other,Other,
+Child too young to have completed series,NA,NA,Other,Other,,Other,Other,Other,
