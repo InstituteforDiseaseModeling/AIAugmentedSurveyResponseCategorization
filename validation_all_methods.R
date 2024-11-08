@@ -12,6 +12,7 @@ library(tidyverse)
 library(openai)
 library(httr)
 library(jsonlite)
+library(tokenizers)
 
 # get the working directory
 setwd('C:/Users/royb/OneDrive - Bill & Melinda Gates Foundation/code/AIAugmentedSurveyResponseCategorization')
@@ -61,6 +62,14 @@ for(i in testdataidx){
                    ))$choices$message.content]
 }
 
+# track input tokens
+tracktokens <- c()
+for(i in testdataidx){
+  message(i)
+  tracktokens <- c(tracktokens,length(unlist(tokenize_words(paste0(system_role,reasons_full$reason[i])))))
+}
+mean(tracktokens)
+
 # write output (will do this after each one, just in case)
 write.csv(reasons_full[random_order%in%testdataidx][, .(roy_categorized, zs_gpt4o_categorized)],paste0('validation_results_',today(),'.csv'))
 
@@ -69,16 +78,27 @@ write.csv(reasons_full[random_order%in%testdataidx][, .(roy_categorized, zs_gpt4
 ### ------ CHAIN OF THOUGHT
 for(i in testdataidx){
   message(i)
+  modout <-
+    create_chat_completion(
+      model = model, 
+      temperature = 0, 
+      messages = list(
+        list('role' = 'system','content' = system_role_COT),
+        list('role' = 'user',  'content' = reasons_full$reason[i])
+      ))
+  print(modout$usage$completion_tokens)
   reasons_full[random_order==i, 
-               CoT_gpt4o_raw := 
-                 create_chat_completion(
-                   model = model, 
-                   temperature = 0, 
-                   messages = list(
-                     list('role' = 'system','content' = system_role_COT),
-                     list('role' = 'user',  'content' = reasons_full$reason[i])
-                   ))$choices$message.content]
+              modout$choices$message.content]
 }
+
+# track input tokens
+tracktokens <- c()
+for(i in testdataidx){
+  message(i)
+  tracktokens <- c(tracktokens,length(unlist(tokenize_words(paste0(system_role_COT,reasons_full$reason[i])))))
+}
+mean(tracktokens)
+
 
 # get result out from CoT completion (its always after a semicolon ;)
 reasons_full[, CoT_gpt4o_categorized := sapply(strsplit(CoT_gpt4o_raw, ";"), function(x) x[2])]
@@ -106,6 +126,7 @@ for(i in testdataidx){
                    ))$choices$message.content]
 }
 
+
 # write output (will do this after each one, just in case)
 write.csv(reasons_full[random_order%in%testdataidx][, .(roy_categorized, zs_gpt4o_categorized, 
                                                         CoT_gpt4o_categorized, FT800_gpt4o_categorized)],paste0('validation_results_',today(),'.csv'))
@@ -130,19 +151,29 @@ getFSsysrole <- function(original_role=system_role,n){
 # do completion for some few shots
 for(nshot in c(20, 50, 400, 800)){
   message(paste0('-----------> SHOTS!', nshot))
+  # for(i in testdataidx){
+  #   message(i)
+  #   col_name <- paste0('FS', nshot, '_gpt4o_categorized')  
+  #   reasons_full[random_order == i, 
+  #                (col_name) := 
+  #                  create_chat_completion(
+  #                    model = model, 
+  #                    temperature = 0, 
+  #                    messages = list(
+  #                      list('role' = 'system','content' = getFSsysrole(system_role, nshot) ),
+  #                      list('role' = 'user',  'content' = reasons_full$reason[i])
+  #                    ))$choices$message.content]
+  # }
+  # 
+  # track input tokens
+  tracktokens <- c()
   for(i in testdataidx){
-    message(i)
-    col_name <- paste0('FS', nshot, '_gpt4o_categorized')  
-    reasons_full[random_order == i, 
-                 (col_name) := 
-                   create_chat_completion(
-                     model = model, 
-                     temperature = 0, 
-                     messages = list(
-                       list('role' = 'system','content' = getFSsysrole(system_role, nshot) ),
-                       list('role' = 'user',  'content' = reasons_full$reason[i])
-                     ))$choices$message.content]
+    #message(i)
+    tracktokens <- c(tracktokens,length(unlist(tokenize_words(paste0(getFSsysrole(system_role, nshot) ,reasons_full$reason[i])))))
   }
+  print(mean(tracktokens))
+  
+  
 }
 
 # write output (will do this after each one, just in case)

@@ -219,7 +219,8 @@ if(pre_loadcategories == FALSE){
 
 
 # merge in the categorized reasons to the full list of responses
-kv <- c('survey','reason', 'age', 'vxstatus','province','ZS','rowid')
+kv <- c('survey','reason', 'age', 'vxstatus','province','ZS','rowid','id')
+d20[, id := 1:.N]
 all_d <- rbind(d20[,kv,with=F], d21[,kv,with=F], d22[,kv,with=F], d23[,kv,with=F])[!is.na(reason)&reason!=""]
 
 all_d <- merge(all_d, all_reasons_categorized[,.(reason,ai_categorized)], by='reason', all.x=TRUE)
@@ -232,6 +233,8 @@ all_d[,freason_category := factor(reason_category,
                                   levels = rev(response_options[order(index)]$reason_category))]
 
 
+# save for patty
+#fwrite(all_d, "./inputs/all_reasons_for_patty.csv")
 
 
 ### ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ 
@@ -262,13 +265,14 @@ reas_cited <- merge(reas_cited, response_options[,.(index,reason_category,EGH.do
 reas_cited[,freason_category := factor(reason_category, 
                                        levels = rev(response_options[order(index)]$reason_category))]
 
-png("./figs/reasons_zd_BOTH.png", width=10, height=6, units='in', res=300)
+png("./figs/reasons_zd_BOTH.png", width=10, height=11, units='in', res=300)
 ggplot(reas_cited[!is.na(freason_category)& vxstatus=='Zero-Dose']) +
   geom_bar(aes(y = freason_category, fill = EGH.domain)) +  
   labs(title = "Reasons for Non-Vaccination (Zero-Dose, ECV2021-23)",
        x = "", y = "", fill = 'EGH Domain') +
   facet_wrap(.~OTHER, scales = 'free_x')+
-  theme(axis.text = element_text(size=30, lineheight = 0.2)) +  
+  theme(axis.text = element_text(size=43, lineheight = 0.2),
+        axis.text.x=element_text(angle=45,hjust=1)) +  
   scale_fill_manual(values = IARCOLORS)
 dev.off()
 
@@ -435,3 +439,78 @@ dev.off()
 
 
 
+
+
+
+### ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
+### ------ NUMBERS FOR PAPER
+
+# Of the 240,256 total responses across the 2020, 2021, and 2022 surveys, 94,663 
+# caregivers were eligible for, and responded to this question, 
+# of those 17,940 chose the ‘Other’ option and gave a free-text response. 
+# Of those free text responses, 8807 were unique strings. 
+
+nrow(d20) + nrow(d21) + nrow(d22)
+sum(!is.na(d21$vs102)) + sum(!is.na(d22$vs102)) + sum(!is.na(d20$qa40111))
+
+sum(!is.na(d20$qa40134))
+sum(!is.na(d20$qa401311))
+
+for(v in grep('qa401',names(d20),value = T)){
+  print(v)
+  print(sum(!is.na(d20[[v]])))
+}
+
+sum(!is.na(d20$reason) & d20$reason!='') + sum(!is.na(d21$reason) & d21$reason!='') + sum(!is.na(d22$reason) & d22$reason!='')
+
+
+# The most common repeated responses where ... 
+tmp <- data.table(reason=c(d20$reason, d21$reason, d22$reason))[!is.na(reason) & reason!='']
+tmp[,N:=.N,by=reason]
+tmp <- unique(tmp)
+tmp[order(-N)][1:10]
+
+
+# Among zero-dose caregivers, XX% responded ‘Other’ to this question, second only to Mother too busy (XX%).  
+tmp <- reas_cited[vxstatus=='Zero-Dose' & OTHER=='Selected', .N, by = freason_category]
+tmp <- rbind(tmp, 
+             data.table(freason_category = 'other', 
+                        N = nrow(reas_cited[vxstatus=='Zero-Dose' & OTHER=='Free-Text'])))[order(-N)]
+tmp[,pct:=round(N/sum(N)*100,1)]
+sum(tmp$N)
+nrow(reas_cited[vxstatus=='Zero-Dose'])
+
+# Among those responding Other, XX% of the LLM-categorized responses were in the new categories. 
+mean(reas_cited[vxstatus=='Zero-Dose' & OTHER=='Free-Text']$vs102>22,na.rm=T)
+
+# Newly categorized responses were more commonly around Community Access-related issues (XX%) compared to Selected responses (XX%).
+tmp <- reas_cited[vxstatus=='Zero-Dose' , .N, by = .(EGH.domain,OTHER)]
+tmp[,pct:=round(N/sum(N)*100,1), by = OTHER]
+tmp
+
+#  The most common three categories were Travel, move, and displacement (XX%) and ‘Negligence’ (XX%) and Working in the field (XX%). 
+tmp <- reas_cited[vxstatus=='Zero-Dose' & OTHER=='Free-Text', .N, by = freason_category]
+tmp[,pct:=round(N/sum(N)*100,1)]
+tmp[order(-N)][1:3]
+
+
+
+# Figure 2 shows examples of categorized responses which vary in time. First, 
+# Covid-19-related reasons (Fear of Covid-19 Vaccine; Covid-19 Lockdown; and Covid-19 
+# (fear of catching or vague)) peaked in 2021with just over 3% of other responses 
+# and has since reduced to almost zero. A major strike of healthcare workers happened 
+# in 2021 and was captured by responses peaking at 17% that year. Finally in the 2020 
+# survey, which included children as young as 6-months, 40% of other respondents 
+# indicated that their child was too young to have completed their vaccination schedule. 
+all_d[ai_categorized %in% c(24,27,31), r := 'Covid-related']
+all_d[ai_categorized %in% c(32),       r := 'Too young to have\ncompleted schedule']
+all_d[ai_categorized %in% c(23),       r := 'Provider strike']
+all_d[is.na(r), r:='OTHER']
+
+tmp <- all_d[!is.na(r), # & vxstatus=='Zero-Dose',
+             .(n=.N), by = .(survey,r)]
+tmp[,pct:=n/sum(n), by=survey][order(r,survey)]
+
+# Indeed XX% of those were under 9-months.
+all_d[survey=='ecv2020' & ai_categorized==32, .N, by=age]
+mean(all_d[survey=='ecv2020' & ai_categorized==32]$age<=9,na.rm=T)         

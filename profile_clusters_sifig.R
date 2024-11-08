@@ -12,6 +12,8 @@ library(openai)
 library(dbscan)
 library(mclust)
 library(tokenizers)
+library(ggplot2)
+library(showtext)
 
 # get the working directory
 setwd('C:/Users/royb/OneDrive - Bill & Melinda Gates Foundation/code/AIAugmentedSurveyResponseCategorization')
@@ -73,9 +75,8 @@ em <- as.data.table(do.call(cbind,em))
 ### we pre-tested and chose to go with GMM and 200 clusters for the final run
 
 # set method and number of clusters
-set.seed(12345)
-cl_method <- 'gmm' # can be 'kmeans', 'hier', 'gmm'
-nclusts   <-  200   # can be any number
+cl_methods <- c('kmeans', 'hier', 'gmm')
+nclusts   <-  c(10,25, 50, 100, 150, 200, 250)   # can be any number
 
 # Set up functions for various cluster approaches
 kmeans_clust <- function(dat, k){  kmeans(dat, centers=k, iter.max=1000)$cluster }
@@ -83,12 +84,20 @@ hier_clust   <- function(dat, k){  hclust(dist(dat), method='ward.D2') %>% cutre
 gmm_clust    <- function(dat, k){  Mclust(dat, G=k)$classification } 
 
 # Run the clustering for the 3 different methods for each nclust
-# Note, we are running on the full embeddings, but PCA first is a plausible way to speed it up
-# Runs in 20 seconds or so on the full embeddings
-clusts <- data.table(rowid    = reasons_full$random_order)
-clusts$cluster <- get(paste0(cl_method,'_clust'))(em, nclusts)
-clusts$method  <- cl_method
-clusts$nclusts <- nclusts
+clusts <- data.table() 
+for(method in cl_methods){
+  message(method)
+  tmp <- data.table(rowid    = reasons_full$random_order,
+                    method   = method)
+  for(nclust in nclusts){
+    set.seed(12345)
+    tmp[, nclusts := nclust]
+    message(paste0('.... ', nclust))
+    tmp$cluster <- get(paste0(method,'_clust'))(em, nclust)
+    clusts <- rbind(clusts,tmp)
+  }
+}
+
 
 # this will be done for each cluster, so we set up a function to call here. 
 # Note that we will use up to 25 examples per cluster to get the label
@@ -148,16 +157,14 @@ labelcluster_gpt <-
   }
 
 
-
 # set llm model to use
 llm_model <- "gpt-4o-2024-08-06"
 
 # loop through all clusters and label them using the function
-cl_method='GMM'
 preload_catassign <- FALSE # re-run or preload?
 if(preload_catassign == FALSE){
   cat_assiged <- data.table() 
-  for(meth in c(cl_method)){
+  for(meth in c(cl_methods)){
     message(paste0('METHOD:', meth))
     tmp <- data.table(method = meth)
     for(nclust in nclusts){
@@ -176,31 +183,50 @@ if(preload_catassign == FALSE){
       }
     }
   }
-  # clean possible brackets that sometimes appear in outputs
   cat_assiged[,category_ai:=as.numeric(gsub('\\[|\\]','',category_ai_raw))]
-  cat_assiged$llm <- llm_model
-  saveRDS(cat_assiged, file.path(datdir,paste0('tmp/cat_assiged_','19SEPT2024','_',llm_model,'.rds')))
+  saveRDS(cat_assiged, file.path(datdir,'tmp/cat_assiged_allclusters_10OCT2024.rds'))
 } else {
-  cat_assiged <- readRDS(file.path(datdir,paste0('tmp/cat_assiged_','19SEPT2024','_',llm_model,'.rds')))
+  cat_assiged <- readRDS(file.path(datdir,'tmp/cat_assiged_allclusters_10OCT2024.rds'))
 }
 
-# HOTFIX BAD OUTPUT
-cat_assiged[is.na(category_ai), category_ai := as.numeric(gsub('\\[|\\]','',substr(category_ai_raw,1,regexpr(']',category_ai_raw))))]
 
 
-### ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ 
-### ------ VALIDATION CHECK
-### Merge back the AI-assigned categories with the Human-assigned categories and get accuracy
-
-# merge and write output
+# merge roy categories and cat_assigned onto the clust file for validation
 catcompare <- merge(clusts, reasons_full[,c('random_order','roy_categorized','roy_notableresponse')], 
                     by.x='rowid', by.y='random_order')
 catcompare <- merge(catcompare, cat_assiged, by = c('method','nclusts','cluster'))
-write.csv(catcompare, './inputs/NLP_Validation_19SEPT2024_gpt4o.csv')
 
 
-# get accuracy
-mean(catcompare$roy_categorized == catcompare$category_ai)
-mean(catcompare[rowid>800]$roy_categorized == catcompare[rowid>800]$category_ai)
+
+
+
+
+
+
+
+# Set up for some plotting stuff
+library(sysfonts)
+library(showtext)
+font_add("Garamond", "GARA.TTF")
+font_families()
+showtext_auto()
+theme_set(theme_classic() + 
+            theme(text = element_text(size=45,family = "Garamond")))
+
+# plot accuracy over method and number of cluster
+png("./figs/si_nlp_cluster_compare.png", width=6, height=6, units='in', res=300)
+ggplot(catcompare[rowid>=800, 
+                  .(accuracy=mean(roy_categorized==category_ai, na.rm=TRUE)),
+                  by = .(method,nclusts)],
+       aes(x=nclusts, y=accuracy*100, color=method)) + 
+  geom_line() + 
+  geom_point(size=3) + 
+  scale_x_continuous(breaks = nclusts,limits=c(0,NA)) +
+  scale_y_continuous(limits = c(0,NA)) +
+  scale_color_manual(values=c('#4793AF', '#1A4D2E', '#C65BCF')) +
+  labs(x='Number of Clusters', 
+       y='Accuracy (%)',
+       color='Clustering\nMethod')
+dev.off()
 
 

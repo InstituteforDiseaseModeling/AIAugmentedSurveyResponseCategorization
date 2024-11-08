@@ -5,3 +5,5 @@ NLP_Validation*
 *.jsonl
 all_reasons_categorized.csv
 discordant_results_RBaccept*
+ecv2023_newunique_reasons.csv
+./R
